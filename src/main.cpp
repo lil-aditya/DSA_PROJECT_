@@ -16,36 +16,39 @@ int main() {
     std::cout << "RSA n: " << keys.n << " e: " << keys.e << " d: " << keys.d << "\\n";
 
     // 2. Hash & Sign
-    std::string data = \"CriticalDataPacket-Example\";
+    std::string data = "\"CriticalDataPacket-Example\"";
     uint64_t h = simpleHash(data);
     uint64_t sig = signData(h, keys);
     uint64_t verify = verifySignature(sig, keys);
-    std::cout << \"Data: \" << data << \"\\nHash: \" << h << \"\\nSignature: \" << sig << \"\\nVerified Hash: \" << verify << \"\\n\";
-    std::cout << \"Signature verification: \" << (verify == h ? \"SUCCESS\" : \"FAIL\") << \"\\n\\n\";
+    std::cout << "\"Data: \" << data << \"\\nHash: \" << h << \"\\nSignature: \" << sig << \"\\nVerified Hash: \" << verify << \"\\n\"";
+    std::cout << "\"Signature verification: \" << (verify == h ? \"SUCCESS\" : \"FAIL\") << \"\\n\\n\"";
 
     // 3. Metadata store demo
     MetadataMap meta;
-    meta.insert(\"UserA_pub\", \"pubkey_userA_example\");
-    std::cout << \"Lookup UserA_pub: \" << meta.get(\"UserA_pub\") << \"\\n\\n\";
+    std::string key = "\"UserA_pub\"";
+    uint64_t key_hash = simpleHash(key);
+    std::string value = "\"pubkey_userA_example\"";
+    meta.insert(key, value);
+    std::cout << "\"Lookup UserA_pub: \" << meta.get(\"UserA_pub\") << \"\\n\\n\"";
 
     // 4. Prioritizer demo
     PriorityEngine engine;
-    engine.push(DataPacket{\"pkt1\", 10});
-    engine.push(DataPacket{\"pkt2\", 5});
-    engine.push(DataPacket{\"pkt3\", 20});
-    std::cout << \"Processing Packets by urgency:\\n\";
+    engine.push(DataPacket{"\"pkt1\"", 10});
+    engine.push(DataPacket{"\"pkt2\"", 5});
+    engine.push(DataPacket{"\"pkt3\"", 20});
+    std::cout << "\"Processing Packets by urgency:\\n\"";
     while (!engine.empty()) {
         auto p = engine.pop();
-        if (p) std::cout << \" - \" << p->id << \" (urgency=\" << p->urgency << \")\\n\";
+        if (p) std::cout << "\" - \" << p->id << \" (urgency=\" << p->urgency << \")\\n\"";
     }
-    std::cout << \"\\n\";
+    std::cout << "\"\\n\"";
 
     // 5. Graph routing demo
     Graph g(6);
     g.addEdge(0,1); g.addEdge(0,2); g.addEdge(1,3); g.addEdge(2,4); g.addEdge(4,5);
     auto order = g.BFS(0);
-    std::cout << \"BFS order from node 0: \";
-    for (int v: order) std::cout << v << \" \";
-    std::cout << \"\\n\\n--- END ---\\n\";
+    std::cout << "\"BFS order from node 0: \"";
+    for (int v: order) std::cout << v << "\" \"";
+    std::cout << "\"\\n\\n--- END ---\\n\"";
     return 0;
 }
