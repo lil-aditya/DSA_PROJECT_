@@ -3,7 +3,7 @@ CXX = g++
 CXXFLAGS = -std=c++17 -O2 -Iinclude -Wall -Wextra
 SRCDIR := src
 BINDIR := build
-TARGET := $(BINDIR)/
+TARGET := $(BINDIR)/dsa_project.exe
 
 SRCS := $(wildcard $(SRCDIR)/*.cpp)
 OBJS = $(SRCS:.cpp=.o)

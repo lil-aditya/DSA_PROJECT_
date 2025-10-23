@@ -2,7 +2,8 @@
 #pragma once
 #include <queue>
 #include <string>
-#include <experimental/optional>
+#include <optional>
+#include <cstdint>
 
 struct DataPacket {
     std::string id;
@@ -19,7 +20,7 @@ class PriorityEngine {
     std::priority_queue<PQItem> pq;
 public:
     void push(const DataPacket &p);
-    std::experimental::optional<DataPacket> pop();
+    std::optional<DataPacket> pop();
     bool empty() const;
     size_t size() const;
 };

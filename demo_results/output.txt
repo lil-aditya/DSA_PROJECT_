@@ -1,0 +1,27 @@
+--- ADIPE DEMO (Toy) ---
+
+--- 0. Number Theory Test ---
+Test (5^3) % 13: 8 (Expected: 8) ... PASS
+
+--- 1. & 2. RSA & Hash Test ---
+RSA n: 1009840029511 e: 65537 d: 920144150369
+Data: "CriticalDataPacket-Example"
+Hash: 15518014928452194649
+Signature: 920252926442
+Verified Hash: 113762412294
+Signature verification: PASS
+
+--- 3. Metadata Store Test ---
+Inserted UserA_pub and UserB_pub
+Lookup UserA_pub: pubkey_userA_example ... PASS
+
+--- 4. Priority Engine Test ---
+Processing Packets by urgency (highest first):
+ - "pkt3" (urgency=20)
+ - "pkt1" (urgency=10)
+ - "pkt2" (urgency=5)
+
+--- 5. Graph Routing (BFS) Test ---
+BFS order from node 0: 0 1 2 3 4 5 
+
+--- END ---
