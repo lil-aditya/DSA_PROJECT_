@@ -32,3 +32,32 @@ int64_t modInverse(int64_t a, int64_t m) {
     if (res < 0) res += m;
     return res;
 }
+
+
+//optinal just for __uint128_t
+
+
+
+
+/**
+ * src/number_theory.cpp (Add this function)
+ * @brief Calculates (a * b) % mod safely without relying on __uint128_t 
+ * (though you don't need it since you use 128-bit types).
+ * Uses the binary multiplication method.
+ */
+uint64_t modMul(uint64_t a, uint64_t b, uint64_t mod) {
+    uint64_t res = 0;
+    a = a % mod;
+    while (b > 0) {
+        // If the least significant bit of b is 1
+        if (b & 1) {
+            // Add 'a' to the result and take the modulus
+            res = (res + a) % mod;
+        }
+        // Double 'a' for the next bit position
+        a = (a * 2) % mod;
+        // Move to the next bit of 'b'
+        b >>= 1; // Same as b = b / 2;
+    }
+    return res;
+}

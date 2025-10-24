@@ -20,4 +20,6 @@ int64_t modInverse(int64_t a, int64_t m);
  * @brief Calculates (a * b) % mod safely without overflowing 64-bit.
  * --- THIS IS THE NEW LINE YOU NEED TO ADD ---
  */
+
+ //optional
 uint64_t modMul(uint64_t a, uint64_t b, uint64_t mod);

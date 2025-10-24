@@ -177,34 +177,71 @@ int main() {
     std::cout << std::endl;
 
 
+//     // --- 1. & 2. RSA & Hash Test ---
+//     std::cout << "--- 1. & 2. RSA & Hash Test ---" << std::endl;
+    
+//     // Assumes your rsa_signature.hpp has 'Keys' and 'generateKeys'
+//     Keys keys = generateKeys(); 
+//     std::cout << "RSA n: " << keys.n << " e: " << keys.e << " d: " << keys.d << std::endl;
+
+//     // Using "CriticalDataPacket-Example" from your log, not "..."
+//     std::string data = "CriticalDataPacket-Example";
+//     std::cout << "Data: \"" << data << "\"" << std::endl;
+
+//     // Assumes your rsa_signature.hpp has 'simpleHash'
+//     uint64_t hash_used = simpleHash(data)%keys.n;
+//     std::cout << "Hash (Full 64-bit): " << simpleHash(data) << std::endl;
+
+// // 3. Print the Modulo N hash (the one used for crypto)
+//     std::cout << "Hash (Mod N): " << hash_used << std::endl;
+
+//     // Assumes your rsa_signature.hpp has 'signData'
+//     uint64_t signature = signData(data, keys);
+//     std::cout << "Signature: " << signature << std::endl;
+
+//     // Assumes your rsa_signature.hpp has 'verifySignature'
+//     bool verified = verifySignature(data, signature, keys);
+    
+//     // Debugging hash
+//     uint64_t verified_hash = modexp(signature, keys.e, keys.n);
+//     std::cout << "Verified Hash: " << verified_hash << std::endl;
+//     std::cout << "Signature verification: " << (verified ? "PASS" : "FAIL") << std::endl;
+//     std::cout << std::endl;
     // --- 1. & 2. RSA & Hash Test ---
     std::cout << "--- 1. & 2. RSA & Hash Test ---" << std::endl;
-    
-    // Assumes your rsa_signature.hpp has 'Keys' and 'generateKeys'
+        
     Keys keys = generateKeys(); 
     std::cout << "RSA n: " << keys.n << " e: " << keys.e << " d: " << keys.d << std::endl;
 
-    // Using "CriticalDataPacket-Example" from your log, not "..."
+    // Using "CriticalDataPacket-Example" from your log
     std::string data = "CriticalDataPacket-Example";
     std::cout << "Data: \"" << data << "\"" << std::endl;
 
-    // Assumes your rsa_signature.hpp has 'simpleHash'
-    uint64_t hash = simpleHash(data);
-    std::cout << "Hash: " << hash << std::endl;
+    // 1. Calculate the full hash once
+    uint64_t full_hash = simpleHash(data);
 
-    // Assumes your rsa_signature.hpp has 'signData'
+    // 2. Calculate the hash used for crypto (Hash mod N)
+    // This is the value that must match the Verified Hash!
+    uint64_t hash_used = full_hash % keys.n;
+
+    // Print both hashes for clear debugging
+    std::cout << "Hash (Full 64-bit): " << full_hash << std::endl;
+    std::cout << "Hash (Mod N for Crypto): " << hash_used << std::endl; 
+
+    // Sign (The signData function uses the data string, not the hash variable)
     uint64_t signature = signData(data, keys);
     std::cout << "Signature: " << signature << std::endl;
 
-    // Assumes your rsa_signature.hpp has 'verifySignature'
+    // Verify 
     bool verified = verifySignature(data, signature, keys);
-    
-    // Debugging hash
+
+    // Debugging: Recalculate and print the decrypted hash for comparison
     uint64_t verified_hash = modexp(signature, keys.e, keys.n);
     std::cout << "Verified Hash: " << verified_hash << std::endl;
+
+    // Final status check
     std::cout << "Signature verification: " << (verified ? "PASS" : "FAIL") << std::endl;
     std::cout << std::endl;
-
 
     // --- 3. Metadata Store Test ---
     std::cout << "--- 3. Metadata Store Test ---" << std::endl;
