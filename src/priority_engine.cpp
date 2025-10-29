@@ -1,15 +1,16 @@
 
 #include "priority_engine.hpp"
 #include <iostream>
+using namespace std;
 
 void PriorityEngine::push(const DataPacket &p) {
-    pq.push(PQItem{p.urgency, p.id});
+    pq.push(p);
 }
 
-std::optional<DataPacket> PriorityEngine::pop() {
-    if (pq.empty()) return std::nullopt;
-    PQItem it = pq.top(); pq.pop();
-    return DataPacket{it.id, it.urgency};
+optional<DataPacket> PriorityEngine::pop() {
+    if (pq.empty()) return nullopt;
+    DataPacket high_priority_packet =pq.top(); pq.pop();
+    return high_priority_packet;
 }
 
 bool PriorityEngine::empty() const { return pq.empty(); }

@@ -1,13 +1,15 @@
-
 #pragma once
-#include <vector>
-#include <string>
+#include <bits/stdc++.h>
+using namespace std;
 
 class Graph {
-    int n;
-    std::vector<std::vector<int>> adj;
+private:
+    map<int,vector<int>> adjList;
+    int numNodes;
 public:
-    Graph(int n);
+    Graph(int nodes);
     void addEdge(int u, int v);
-    std::vector<int> BFS(int start) const;
+    void BFS(int startNode);
+
+    vector<int> findShortestPath(int startNode, int endNode);
 };
