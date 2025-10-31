@@ -1,0 +1,35 @@
+--- Simulation Setup ---
+Network graph created.
+Address book populated.
+Node inboxes created.
+
+--- Simulation 1: Valid Packet ---
+Path: 0 1 3 5 
+
+--- Node 1 Processing ---
+Popped packet admin_01 (Urgency 20)
+Packet data: REBOOT_SERVER_COMMAND
+Signature VALID ✅
+Forwarding to node 3
+
+--- Node 3 Processing ---
+Popped packet admin_01 (Urgency 20)
+Packet data: REBOOT_SERVER_COMMAND
+Signature VALID ✅
+Forwarding to node 5
+
+--- Node 5 Processing ---
+Popped packet admin_01 (Urgency 20)
+Packet data: REBOOT_SERVER_COMMAND
+Signature VALID ✅
+Packet delivered to final destination!
+
+--- Simulation 2: Tampered Packet ---
+Path: 0 2 4 
+
+--- Node 2 Processing ---
+Popped packet u02 (Urgency 5)
+Packet data: MALICIOUS_DATA_INJECTED
+Signature INVALID ❌ Packet dropped.
+
+--- Simulation Complete ---
