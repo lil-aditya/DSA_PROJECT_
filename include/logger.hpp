@@ -15,7 +15,7 @@ public:
         if (out.is_open()) out.close();
     }
     void Log(const std::string &msg) {
-        std::cout << msg;
+        std::cout << msg; 
         if (out.is_open()) out << msg;
     }
 };

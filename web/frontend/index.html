@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>ADIPE — Simulation</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>DSA Project Simulator</h1>
+      <form id="simForm">
+        <label>Username</label>
+        <input name="username" required />
+        <label>Priority</label>
+        <select name="priority">
+          <option>High</option>
+          <option>Low</option>
+        </select>
+        <label>Destination Node</label>
+        <input type="number" name="dest" min="0" max="10" value="5" />
+        <button type="submit">Run Simulation</button>
+      </form>
+      <pre id="output"></pre>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
