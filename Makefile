@@ -9,11 +9,17 @@ SRCDIR := src
 BINDIR := build
 TARGET := $(BINDIR)/dsa_project.exe
 
+# Find all .cpp files in the src directory
 SRCS := $(wildcard $(SRCDIR)/*.cpp)
-OBJS = $(SRCS:.cpp=.o)
+# Map the source files to their corresponding object files in the build directory
+# Example: src/Node.cpp -> build/Node.o
+OBJS := $(patsubst $(SRCDIR)/%.cpp, $(BINDIR)/%.o, $(SRCS))
 
-.PHONY: all run clean 
+# --- Rules ---
+# .PHONY means these are not files, but commands
+.PHONY: all run clean
 
+# Default target: 'make all' or just 'make'
 all: prepare $(TARGET)
 
 # build the executable
@@ -25,20 +31,16 @@ $(TARGET): $(SRCS)
 prepare:
 	@mkdir -p $(BINDIR)
 	@mkdir -p demo_results
+	@mkdir -p logs
 
+# Run the live C++ server
+# This is now a foreground process; stop with Ctrl+C
 run: all
-	@echo "Running ADIPE and saving output to demo_results/output.txt..."
-	@$(TARGET) | tee demo_results/output.txt
+	@echo "--- C++ Network Engine is LIVE ---"
+	@$(TARGET)
 
-check: run
-	@echo "Output saved to demo_results/output.txt (tail -n 20 shown):"
-	@tail -n 20 demo_results/output.txt
-
-# remove build artifacts and results
+# Clean build artifacts
 clean:
-	@echo "Cleaning build and demo results..."
-	@rm -rf $(BINDIR) demo_results
-	@rm -f $(SRCDIR)/*.o
+	@echo "Cleaning build directory..."
+	@rm -rf $(BINDIR)
 	@echo "Clean done."
-
-

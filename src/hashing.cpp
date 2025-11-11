@@ -1,6 +1,6 @@
 
 #include "hashing.hpp"
-#include <cstdint>
+#include <cstdint>//<cstdint> header in C++ ensures the portability of integer types
 #include <string>
 
 // Simple non-cryptographic rolling hash for demo purposes only.
