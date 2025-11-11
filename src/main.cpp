@@ -1,139 +1,82 @@
+// Launcher for Phase 3: instantiate nodes, start servers/workers, inject a test packet.
+
 #include <iostream>
-#include <string>
 #include <vector>
-#include <cstdint>
-#include <map>
-#include <optional>
-#include <algorithm>
+#include <thread>
+#include <chrono>
 
-#include "number_theory.hpp"
-#include "hashing.hpp"
-#include "rsa_signature.hpp"
-#include "hashmap.hpp"
-#include "priority_engine.hpp"
 #include "graph_routing.hpp"
-#include "logger.hpp" // ✅ our logger
+#include "hashmap.hpp"
+#include "rsa_signature.hpp"
+#include "logger.hpp"
+#include "Node.hpp"
 
-// ✅ Macro for logging like cout
-#define PRINT(x) logger.Log(x)
-
-/**
- * @brief Simulates packet traversal node by node
- */
-void simulatePath(std::vector<int> path, 
-                  std::map<int, PriorityEngine>& nodeInboxes, 
-                  MetadataMap& addressBook)
+int main()
 {
-    if (path.empty()) {
-        PRINT("SIMULATION ERROR: Path is empty.\n");
-        return;
-    }
+    logger.Log("--- Phase 3 Launcher: Starting nodes ---\n");
 
-    for (size_t i = 1; i < path.size(); ++i) {
-        int currentNodeIdx = path[i];
-
-        PRINT("\n--- Node " + std::to_string(currentNodeIdx) + " Processing ---\n");
-
-        if (nodeInboxes[currentNodeIdx].empty()) {
-            PRINT("ERROR: Node inbox empty. Packet lost.\n");
-            break;
-        }
-
-        DataPacket packet = *nodeInboxes[currentNodeIdx].pop();
-        PRINT("Popped packet " + packet.id + " (Urgency " + std::to_string(packet.urgency) + ")\n");
-        PRINT("Packet data: " + packet.data + "\n");
-
-        std::string pub_e = addressBook.get(packet.senderID + "_pub_e");
-        std::string pub_n = addressBook.get(packet.senderID + "_pub_n");
-
-        if (pub_e == "NOT_FOUND" || pub_n == "NOT_FOUND") {
-            PRINT("LOOKUP FAILED: Missing public key.\n");
-            break;
-        }
-
-        Keys senderPubKey;
-        senderPubKey.e = std::stoull(pub_e);
-        senderPubKey.n = std::stoull(pub_n);
-        senderPubKey.d = 0;
-
-        bool ok = verifySignature(packet.data, packet.signature, senderPubKey);
-
-        if (ok) {
-            PRINT("Signature VALID ✅\n");
-
-            if (currentNodeIdx == path.back()) {
-                PRINT("Packet delivered to final destination!\n");
-            } else {
-                int nextHop = path[i+1];
-                PRINT("Forwarding to node " + std::to_string(nextHop) + "\n");
-                nodeInboxes[nextHop].push(packet);
-            }
-        } else {
-            PRINT("Signature INVALID ❌ Packet dropped.\n");
-            break;
-        }
-    }
-}
-
-int main() {
-    PRINT("--- Simulation Setup ---\n");
-
+    // Build network graph
     Graph network(6);
-    network.addEdge(0,1);
-    network.addEdge(1,3);
-    network.addEdge(3,5);
-    network.addEdge(0,2);
-    network.addEdge(2,4);
-    network.addEdge(4,5);
-    PRINT("Network graph created.\n");
+    network.addEdge(0, 1);
+    network.addEdge(1, 3);
+    network.addEdge(3, 5);
+    network.addEdge(0, 2);
+    network.addEdge(2, 4);
+    network.addEdge(4, 5);
 
+    // Address book (public keys)
     MetadataMap addressBook;
     Keys admin = generateKeys();
-    Keys userA = admin; 
+    // for demo we reuse keys; in real deploy every node has unique keys
+    for (int i = 0; i < 6; ++i)
+    {
+        addressBook.insert("Node" + std::to_string(i) + "_pub_e", std::to_string(admin.e));
+        addressBook.insert("Node" + std::to_string(i) + "_pub_n", std::to_string(admin.n));
+    }
 
-    addressBook.insert("Admin_pub_e", std::to_string(admin.e));
-    addressBook.insert("Admin_pub_n", std::to_string(admin.n));
-    addressBook.insert("UserA_pub_e", std::to_string(userA.e));
-    addressBook.insert("UserA_pub_n", std::to_string(userA.n));
+    // Create nodes
+    std::vector<std::unique_ptr<Node>> nodes;
+    for (int i = 0; i < 6; ++i)
+    {
+        nodes.emplace_back(std::make_unique<Node>(i, "Node" + std::to_string(i)));
+        nodes.back()->networkMap = &network;
+        nodes.back()->addressBook = &addressBook;
+        nodes.back()->nodeKeys = admin; // demo only
+    }
 
-    PRINT("Address book populated.\n");
+    // Start all nodes
+    for (auto &n : nodes)
+        n->start();
 
-    std::map<int, PriorityEngine> nodeInboxes;
-    for (int i = 0; i < 6; i++) nodeInboxes[i] = PriorityEngine();
+    // Give servers time to come up
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    PRINT("Node inboxes created.\n");
+    // Inject a test packet into Node 0 using httplib::Client
+    {
+        std::string data = "REBOOT_SERVER_COMMAND";
+        uint64_t sig = signData(data, admin);
+        DataPacket pkt("test_01", 50, data, "Node0", sig, 5); // destination = node 5
 
-    // ---- SIM 1 ----
-    PRINT("\n--- Simulation 1: Valid Packet ---\n");
+        try
+        {
+            httplib::Client cli("localhost", Node::portMap[0]);
+            nlohmann::json j = pkt;
+            cli.Post("/packet", j.dump(), "application/json");
+            logger.Log("Injected test packet to Node 0\n");
+        }
+        catch (...)
+        {
+            logger.Log("Failed to inject test packet (httplib client not available).\n");
+        }
+    }
 
-    std::string data = "REBOOT_SERVER_COMMAND";
-    uint64_t sig = signData(data, admin);
-    DataPacket pkt("admin_01", 20, data, "Admin", sig);
+    // Keep main alive to let nodes process; in a real app you'd use a nicer shutdown signal
+    std::this_thread::sleep_for(std::chrono::seconds(10));
 
-    std::vector<int> path1 = network.findShortestPath(0,5);
-    PRINT("Path: ");
-    for (int n : path1) PRINT(std::to_string(n) + " ");
-    PRINT("\n");
+    // Stop nodes
+    for (auto &n : nodes)
+        n->stop();
 
-    nodeInboxes[1].push(pkt);
-    simulatePath(path1, nodeInboxes, addressBook);
-
-    // ---- SIM 2 ----
-    PRINT("\n--- Simulation 2: Tampered Packet ---\n");
-
-    std::string d2 = "LOG_DATA_NORMAL";
-    uint64_t s2 = signData(d2, userA);
-    DataPacket pkt2("u02", 5, d2, "UserA", s2);
-    pkt2.data = "MALICIOUS_DATA_INJECTED";
-
-    std::vector<int> path2 = network.findShortestPath(0,4);
-    PRINT("Path: ");
-    for (int n : path2) PRINT(std::to_string(n) + " ");
-    PRINT("\n");
-
-    nodeInboxes[2].push(pkt2);
-    simulatePath(path2, nodeInboxes, addressBook);
-
-    PRINT("\n--- Simulation Complete ---\n");
+    logger.Log("--- Launcher shutdown ---\n");
     return 0;
 }
