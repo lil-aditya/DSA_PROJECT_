@@ -1,26 +1,10 @@
-# --- Compiler and Flags ---
-CXX := g++
 
-# CXXFLAGS are the compiler flags
-# -std=c++17: Use the C++17 standard (for std::optional, etc.)
-# -O2: Optimization level 2
-# -Iinclude: Tell the compiler to look for headers in the 'include' folder
-# -Wall -Wextra: Enable all common warnings
-# -g: Include debug symbols
-# -D_WIN32_WINNT=0x0A00: Define Windows version as Windows 10 (fixes httplib error)
-# -DWIN32_LEAN_AND_MEAN: Windows optimization
-# -DNOMINMAX: Windows optimization (prevents 'byte' conflict)
-CXXFLAGS := -std=c++17 -O2 -Iinclude -Wall -Wextra -g \
-            -D_WIN32_WINNT=0x0A00 \
-            -DWIN32_LEAN_AND_MEAN \
-            -DNOMINMAX
-
-# LDFLAGS are the linker flags
-# -lpthread: Link the POSIX threads library (for std::thread)
-# -lws2_32: Link the Windows Sockets 2 library (for httplib)
-LDFLAGS := -lpthread -lws2_32
-
-# --- Project Structure ---
+CXX = g++
+# Define Windows version and reduce Windows header pollution to avoid
+# conflicts when compiling cpp-httplib on MSYS/MinGW. If you prefer to
+# build in WSL/Linux, these defines aren't necessary.
+CXXFLAGS = -std=c++17 -O2 -Iinclude -Wall -Wextra -D_WIN32_WINNT=0x0A00 -DWIN32_LEAN_AND_MEAN -DNOMINMAX
+LDFLAGS = -lpthread -lws2_32
 SRCDIR := src
 BINDIR := build
 TARGET := $(BINDIR)/dsa_project.exe
@@ -38,21 +22,12 @@ OBJS := $(patsubst $(SRCDIR)/%.cpp, $(BINDIR)/%.o, $(SRCS))
 # Default target: 'make all' or just 'make'
 all: prepare $(TARGET)
 
-# Link the executable
-# This rule runs *after* all .o files are built
-$(TARGET): $(OBJS)
-	@echo "Linking executable..."
-	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
-	@echo "Build complete: $(TARGET)"
+# build the executable
+$(TARGET): $(SRCS)
+	@mkdir -p $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRCS) $(LDFLAGS)
+	@echo "Built $(TARGET)"
 
-# Compile object files
-# This is the efficient, two-step compilation rule
-# It compiles any .cpp file that has changed into its .o counterpart
-$(BINDIR)/%.o: $(SRCDIR)/%.cpp
-	@echo "Compiling $<..."
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Create directories needed for the build
 prepare:
 	@mkdir -p $(BINDIR)
 	@mkdir -p demo_results
