@@ -44,8 +44,8 @@ struct DataPacket
     string id;
     uint32_t urgency; // higher => more urgent
     string data;      // The actual message, e.g., "REBOOT_SERVER"
-    string senderID;  // Who sent it, e.g., "Admin"
-    string data;      // The actual message, e.g., "REBOOT_SERVER"
+    // string senderID;  // Who sent it, e.g., "Admin"
+    // string data;      // The actual message, e.g., "REBOOT_SERVER"
     string senderID;  // Who sent it, e.g., "Admin"
     uint64_t signature;
     int destinationID; // new: destination node id
