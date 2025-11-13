@@ -66,17 +66,22 @@ export default function App() {
     e.preventDefault();
     if (!message.trim()) return;
     // keep UI list
-    setMessages([{ text: message, priority }, ...messages]);
+    // include the packet id so UI can track resend/sending state
+    const pktId = `ui_${Date.now()}`;
+    // admin messages always get higher priority
+    const effectivePriority = sender === "Admin" ? "High" : priority;
+    setMessages([{ text: message, priority: effectivePriority, id: pktId, sender }, ...messages]);
 
     // map priority to numeric urgency for the backend packet
     const urgencyMap = { Low: 10, Medium: 50, High: 90 };
     const pkt = {
-      id: `ui_${Date.now()}`,
-      urgency: urgencyMap[priority] || 10,
+      id: pktId,
+      urgency: urgencyMap[effectivePriority] || 10,
       data: message,
       senderID: "Node0",
       signature: 0,
-      destinationID: destination
+      destinationID: destination,
+      sender: sender,
     };
 
     // send to selected node's backend dev endpoint (no signature verification) so the node receives it directly
@@ -94,7 +99,8 @@ export default function App() {
   // Send a message object to the backend /packet-dev endpoint
   const sendMessage = async (msg) => {
     const urgencyMap = { Low: 10, Medium: 50, High: 90 };
-    const id = `ui_${Date.now()}`;
+    // reuse the message id so sending state maps to UI entry
+    const id = msg.id || `ui_${Date.now()}`;
     const pkt = {
       id,
       urgency: urgencyMap[msg.priority] || 10,
@@ -102,9 +108,10 @@ export default function App() {
       senderID: "Node0",
       signature: 0,
       destinationID: destination,
+      sender: msg.sender || sender,
     };
 
-    // optimistic UI: mark as sending
+    // optimistic UI: mark as sending (use same id)
     setSendingIds((s) => new Set([...s, id]));
 
     try {
@@ -138,7 +145,7 @@ export default function App() {
         {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
       </button>
 
-      <div className="w-full max-w-4xl mt-6 grid grid-cols-2 gap-6">
+      <div className="w-full max-w-6xl mt-6 grid grid-cols-3 gap-6">
         {/* Left: Inject Packet Form */}
         <div className="bg-gray-800/40 dark:bg-gray-900/40 shadow-2xl rounded-2xl p-8 text-left">
           <h2 className="text-2xl font-bold mb-4">Inject New Packet</h2>
@@ -181,7 +188,7 @@ export default function App() {
             <h2 className="text-2xl font-bold">Live C++ Network Log</h2>
             <div className="flex items-center gap-2">
               <span className={`w-3 h-3 rounded-full ${connected ? 'bg-green-400' : 'bg-red-500'}`}></span>
-              <span className="text-sm text-gray-300">{connected ? 'ONLINE - C++/Python API detected.' : 'OFFLINE - C++/Python API not detected.'}</span>
+              <span className="text-sm text-gray-300">{connected ? 'ONLINE - C++ API detected.' : 'OFFLINE - C++/Python API not detected.'}</span>
             </div>
           </div>
 
@@ -190,15 +197,67 @@ export default function App() {
               events.length === 0 ? (
                 <div>No events yet</div>
               ) : (
-                events.map((e, i) => (
-                  <div key={i} className="mb-2">
-                    <div className="text-xs text-gray-400">Node {e.nodeID}</div>
-                    <div>{e.event}</div>
-                  </div>
-                ))
+                events.map((e, i) => {
+                  // Extract sender from dev packet event if present
+                  let senderDisplay = "";
+                  let displayEvent = e.event;
+                  if (e.event && e.event.includes("[DEV]") && e.event.includes("from")) {
+                    // Try to extract sender from "[DEV] Node X received dev-packet from <sender>"
+                    const match = e.event.match(/from\s+(\w+)/);
+                    if (match) {
+                      senderDisplay = match[1];
+                      displayEvent = e.event;
+                    }
+                  }
+                  return (
+                    <div key={i} className="mb-2 pb-2 border-b border-gray-700">
+                      <div className="text-xs text-gray-400 flex items-center gap-2">
+                        <span>Node {e.nodeID}</span>
+                        {senderDisplay && <span className="text-yellow-400 font-semibold">(from: {senderDisplay})</span>}
+                      </div>
+                      <div>{displayEvent}</div>
+                    </div>
+                  );
+                })
               )
             ) : (
               <div className="text-red-400">Error fetching log: Failed to fetch</div>
+            )}
+          </div>
+        </div>
+
+        {/* New Right-most: Sent Messages / Priority Panel */}
+        <div className="bg-gray-800/40 dark:bg-gray-900/40 shadow-2xl rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">Sent Messages / Priority</h2>
+            <div className="flex items-center gap-2">
+              <span className={`w-3 h-3 rounded-full ${connected ? 'bg-green-400' : 'bg-red-500'}`}></span>
+              <span className="text-sm text-gray-300">{connected ? 'Connected' : 'Disconnected'}</span>
+            </div>
+          </div>
+
+          <div className="space-y-3 max-h-72 overflow-auto">
+            {messages.length === 0 ? (
+              <div className="text-sm text-gray-400">No messages injected yet</div>
+            ) : (
+              messages.map((m) => (
+                <div key={m.id || m.text} className="flex items-start justify-between p-3 bg-black/30 rounded">
+                  <div>
+                    <div className="text-xs text-gray-400 mb-1">{m.id ? new Date(Number(m.id.split('_')[1])).toLocaleString() : ''}</div>
+                    <div className="font-medium break-words max-w-xs">{m.text}</div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={`px-2 py-1 rounded-full text-xs text-white ${priorityColors[m.priority] || 'bg-gray-500'}`}>{m.priority}</span>
+                    <button
+                      onClick={() => sendMessage(m)}
+                      className="text-sm px-2 py-1 bg-blue-600 rounded disabled:opacity-50"
+                      disabled={!connected}
+                    >
+                      {sendingIds.has(m.id) ? 'Sending...' : 'Resend'}
+                    </button>
+                  </div>
+                </div>
+              ))
             )}
           </div>
         </div>

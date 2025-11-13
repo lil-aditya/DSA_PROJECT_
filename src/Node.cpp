@@ -87,7 +87,12 @@ void Node::runServer()
                 } catch (...) {
                 }
             inbox.push(packet);
-            logEvent("📩 [DEV] Node " + std::to_string(nodeID) + " received dev-packet from " + packet.senderID);
+            // Extract sender name from frontend if provided
+            std::string senderName = packet.senderID;
+            if (j.contains("sender")) {
+                senderName = j["sender"].get<std::string>();
+            }
+            logEvent("📩 [DEV] Node " + std::to_string(nodeID) + " received dev-packet from " + senderName);
         } catch (...) {
             logEvent("❌ [DEV] Failed to parse incoming dev-packet on Node " + std::to_string(nodeID));
         }
