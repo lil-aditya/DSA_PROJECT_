@@ -1,35 +1,76 @@
 # Algorithmic Data Integrity and Prioritization Engine (ADIPE)
 
-This repository contains the C++ implementation for **ADIPE (Algorithmic Data Integrity and Prioritization Engine)**, a system designed for verifiable and prioritized data management.
+This repository contains the C++ implementation for **ADIPE (Algorithmic Data Integrity and Prioritization Engine)**, A lightweight framework for simulating a network with Authenticated Quality of Service (QoS).
 
-## 📖 About the Project
 
-The core idea of this project is to build a framework that uses number-theoretic Data Structures and Algorithms (DSA) to create digital signatures for data packets. This process ensures the **authenticity** and **integrity** of the data.
+# 📘 About the Project
 
-Once data is verified, the system uses structures like **Heaps (Priority Queues)** and **Graphs** to manage and route the data based on its urgency. It is a research-level project that demonstrates how to unify number theory, graph traversal, and data structures to solve complex problems of trust and timeliness in distributed computing.
+This project is a **network simulation framework** that combines number-theoretic algorithms, graph traversal, and cryptographic verification to simulate how trusted digital packets move through a distributed system.
 
-## 🛠️ Technical Stack
+Every packet generated in the system is **digitally signed** using number-theoretic Data Structures & Algorithms (DSA). These signatures ensure:
 
-The project is built using the following technologies and algorithms:
+- **Authenticity** — the packet truly comes from the claimed sender.
+- **Integrity** — the packet has not been altered during transit.
 
-* **Programming Language:** `C++` (chosen for low-level control).
-* **Core DSA:**
-    * Fast Modular Exponentiation
-    * Extended Euclidean Algorithm
-    * Custom Hash Map (for O(1) lookups)
-    * Priority Queue (Heap)
-    * Graph Traversal (BFS/Dijkstra)
-* **Integrity & Verification:**
-    * RSA Digital Signatures
-    * SHA-256 (simplified Hashing)
+Once verified, packets enter a **priority-based routing engine** built on top of **Heaps (Priority Queues)** and **Graphs (BFS/Dijkstra)**.
+
+This allows the network to **route data intelligently** based on urgency, trust, and validity — unlike a normal BFS network where all packets are treated equally.
+
+The entire system is visualized in a clean simulation UI, where users can:
+
+- Inject packets  
+- Track packet priority  
+- Observe live C++ logs  
+- Monitor node status  
+- Watch real-time routing behavior  
+
+
+---
+
+# 🧠 Technical Stack
+
+This simulation is built using the following technologies and algorithms:
+
+---
+
+## 🔹 Programming Language
+- **C++** (chosen for low-level performance and control)
+
+---
+
+## 🔹 Core DSA Components
+- Fast Modular Exponentiation  
+- Extended Euclidean Algorithm  
+- Custom Hash Map (O(1) average lookup time)  
+- Priority Queue (Heap) – for urgency-based scheduling  
+- Graph Traversal (Dijkstra-style routing)  
+
+---
+
+## 🔹 Integrity & Verification
+- **RSA Digital Signatures**  
+- **simplified hashing**  
+
+---
+
+## 🔹 Frontend / UI
+- **React + Vite**  
+- **TailwindCSS** for styling  
+- Real-time event polling from C++ backend nodes  
+- Live log viewer, packet injection panel, and priority visualization  
+
+---
+
 
 ## 🚀 How to Run
 
 To build and run the C++ command-line demonstration:
 
 ```bash
-# 1. Compile the project using make
-make
-
-# 2. Run the executable
-./build/ADIPE
+# 1.git clone https://github.com/lil-aditya/DSA_PROJECT_.git
+# 2.Ensure you have MSYS2 UCRT64
+# 3.In UCRT64 terminal run cd /c/Users/PC/Desktop/Project_dsa_old/DSA_PROJECT_
+# 4.make
+# 5../build/dsa_project.exe
+# 6.In powershell go to \DSA_PROJECT_\adipe-frontend>  and then run "npm install"
+# 7.npm run dev
